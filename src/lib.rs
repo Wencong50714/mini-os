@@ -7,10 +7,17 @@
 
 use core::panic::PanicInfo;
 
+pub mod gdt;
+pub mod interrupts;
 pub mod serial;
 pub mod vga_buffer;
-pub mod interrupts;
-pub mod gdt;
+
+pub fn init() {
+    gdt::init();
+    interrupts::init_idt();
+    unsafe { interrupts::PICS.lock().initialize() };
+    x86_64::instructions::interrupts::enable();
+}
 
 pub trait Testable {
     fn run(&self) -> ();
@@ -58,24 +65,13 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
     }
 }
 
-/// Entry point for `cargo test`
+/// Entry point for `cargo xtest`
 #[cfg(test)]
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     init();
     test_main();
     loop {}
-}
-
-pub fn init() {
-    gdt::init();
-    interrupts::init_idt();
-    unsafe { interrupts::PICS.lock().initialize() };
-    let mut pics = interrupts::PICS.lock();
-    *pics =
-        unsafe { pic8259::ChainedPics::new(interrupts::PIC_1_OFFSET, interrupts::PIC_2_OFFSET) };
-    unsafe { pics.initialize() };
-    x86_64::instructions::interrupts::enable(); // enable the interrupt
 }
 
 #[cfg(test)]
