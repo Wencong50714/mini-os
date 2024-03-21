@@ -41,8 +41,11 @@ lazy_static! {
 
         idt[InterruptIndex::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
         idt[InterruptIndex::Keyboard.as_usize()].set_handler_fn(keyboard_interrupt_handler);
+<<<<<<< HEAD
         idt.page_fault.set_handler_fn(page_fault_handler);
 
+=======
+>>>>>>> origin/master
         idt
     };
 }
@@ -101,6 +104,7 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Keyboard.as_u8());
     }
+
 }
 
 extern "x86-interrupt" fn page_fault_handler(
